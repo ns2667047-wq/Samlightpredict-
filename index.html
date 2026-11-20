@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SamLight predicts</title>
+<style>
+:root{--bg:#EDF1F3;--surface:#fff;--ink:#13232B;--muted:#5A6B74;--line:#D3DCE1;--accent:#0E5A57;--accent-ink:#fff;--warn:#B53A08;--warn-bg:#FDECE3;--ok:#1B7F4B;--away:#B9791C}
+@media (prefers-color-scheme:dark){:root{--bg:#0E1A1F;--surface:#15262D;--ink:#E7EFF2;--muted:#93A5AE;--line:#2A4049;--accent:#5CC8C0;--accent-ink:#06201F;--warn:#FF9B6A;--warn-bg:#2A1A12;--ok:#58C98A;--away:#E3B55C}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:28px;line-height:1.15;margin:0 0 4px}
+h2{font-size:19px;margin:22px 0 10px}
+.sub,.small{color:var(--muted)}
+.sub{margin:0 0 16px}
+.small{font-size:13px}
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:16px}
+.tabs button{flex:1;border:0;background:none;color:var(--muted);font:600 15px inherit;font-family:inherit;padding:10px 4px;border-radius:9px;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--accent);color:var(--accent-ink)}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.notice{border-left:4px solid var(--warn);background:var(--warn-bg);padding:10px 12px;border-radius:0 8px 8px 0;font-size:14px;margin-bottom:16px}
+.chips{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.chips button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 14px;font:500 14px inherit;font-family:inherit;cursor:pointer}
+.chips button[aria-pressed=true]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+summary{font-weight:600;cursor:pointer}
+.teams{display:block;width:100%;text-align:left;background:none;border:0;padding:0;color:var(--ink);cursor:pointer;font:700 17px inherit;font-family:inherit}
+.bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:10px 0 6px;gap:2px}
+.bar i{display:block}
+.legend{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.verdict{margin-top:10px;font-size:14px}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:13px;font-weight:600;margin-right:4px}
+.b-no{background:var(--warn);color:var(--accent-ink)}
+.b-caution{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn)}
+.b-strong{background:var(--ok);color:var(--accent-ink)}
+.det{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:15px}
+.kv b{text-align:right}
+.res{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.res:last-child{border-bottom:0}
+label{display:block;font-size:14px;font-weight:600;margin:12px 0 4px}
+select,textarea,input[type=text],input[type=password],input[type=file]{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+.odds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.go{margin-top:14px;width:100%;border:0;border-radius:10px;padding:12px;background:var(--accent);color:var(--accent-ink);font:600 16px inherit;font-family:inherit;cursor:pointer}
+.alt{background:var(--surface);color:var(--accent);border:1px solid var(--accent);margin-top:8px}
+.err{color:var(--warn);font-size:14px;margin:8px 0 0}
+.out{white-space:pre-wrap;margin-top:14px;font-size:15px}
+</style>
+</head>
+<body>
+<main>
+<h1>SamLight predicts</h1>
+<p class="sub">Works offline. No account needed.</p>
+<div class="tabs" role="tablist">
+<button role="tab" id="t0" aria-selected="true">Football</button>
+<button role="tab" id="t1" aria-selected="false">Slip check</button>
+<button role="tab" id="t2" aria-selected="false">Trading</button>
+</div>
+
+<section id="p0">
+<div class="notice">Tap a match to see score estimates. Probabilities are never certainty. Anything under 90% is flagged, and anything under 70% is marked “Don’t play.”</div>
+<details class="card">
+<summary>Add your own match (any league)</summary>
+<label for="mh">Home team</label><input type="text" id="mh">
+<label for="ma">Away team</label><input type="text" id="ma">
+<label>Odds: home win, draw, away win</label>
+<div class="odds"><input type="text" id="o1" inputmode="decimal" placeholder="1.85" aria-label="Home win odds"><input type="text" id="oX" inputmode="decimal" placeholder="3.40" aria-label="Draw odds"><input type="text" id="o2" inputmode="decimal" placeholder="4.20" aria-label="Away win odds"></div>
+<button class="go" id="addM">Add match</button>
+<p class="err" id="addErr"></p>
+</details>
+<div class="chips" id="chips"></div>
+<div id="list"></div>
+<h2>Latest results</h2>
+<div class="card" id="results"></div>
+<p class="small">Premier League games and win probabilities come from a sports data provider’s model, saved on Nov 20, 2026. They don’t refresh by themselves. For any other league, or newer games, use “Add your own match” and type the three odds from your betting app.</p>
+<p class="small">Live video can’t be built into this page because broadcasters hold the rights. Use your licensed broadcaster to watch.</p>
+</section>
+
+<section id="p1" hidden>
+<div class="notice">A booking code is only an ID that the betting site can open, so it can’t be read here. Upload a screenshot of the full slip, or type your games with their odds, one per line.</div>
+<div class="card">
+<label for="slipText">Games and odds, one per line</label>
+<textarea id="slipText" rows="6" placeholder="Arsenal win 1.45&#10;Over 1.5 goals Liverpool v Man United 1.30&#10;Chelsea or draw 1.25"></textarea>
+<label for="slipShot">Or upload a screenshot of the slip</label>
+<input type="file" id="slipShot" accept="image/*">
+<button class="go alt" id="ocrGo">Read text from screenshot (free)</button>
+<button class="go alt" id="aiSlipGo">Read screenshot with AI</button>
+<p class="small" id="shotMsg"></p>
+<label for="stake">Stake (optional)</label>
+<input type="text" id="stake" inputmode="decimal" placeholder="1000">
+<button class="go" id="slipGo">Check my slip</button>
+<div class="out" id="slipOut" aria-live="polite"></div>
+</div>
+</section>
+
+<section id="p2" hidden>
+<div class="notice">A chart read is an opinion, not a forecast. Nobody can call the next candle reliably. Use a stop loss, and never risk money you can’t afford to lose.</div>
+<div class="card">
+<label for="asset">What are you trading?</label>
+<select id="asset"><option>Gold (XAU/USD)</option><option>EUR/USD</option><option>GBP/USD</option><option>USD/JPY</option><option>Something else</option></select>
+<label for="trText">Last candles, one per line: open, high, low, close (oldest first, numbers only)</label>
+<textarea id="trText" rows="10" placeholder="2650.5, 2655.0, 2648.2, 2653.1&#10;2653.1, 2658.4, 2651.0, 2656.9"></textarea>
+<label for="chartShot">Or upload a chart screenshot</label>
+<input type="file" id="chartShot" accept="image/*">
+<button class="go alt" id="aiChartGo">Read chart screenshot with AI</button>
+<button class="go" id="trGo">Read the typed candles</button>
+<div class="out" id="trOut" aria-live="polite"></div>
+</div>
+</section>
+<details class="card">
+<summary>AI reader settings (for screenshots)</summary>
+<p class="small">Pick one. Your key stays on this device and goes only to the company you choose, and so do the screenshots you read. Get a Gemini key from Google AI Studio, or a Claude key from the Anthropic console.</p>
+<label for="prov">Provider</label>
+<select id="prov"><option value="gemini">Google Gemini (has a free tier)</option><option value="claude">Claude (paid)</option></select>
+<label for="mdl">Model name</label>
+<input type="text" id="mdl">
+<label for="key">API key</label>
+<input type="password" id="key" autocomplete="off" placeholder="Paste your key">
+<button class="go" id="saveKey">Save settings</button>
+<p class="small" id="keyMsg"></p>
+</details>
+</main>
+
+<script>
+const N={MCI:"Manchester City",FUL:"Fulham",AVL:"Aston Villa",SUN:"Sunderland",BOU:"Bournemouth",NFO:"Nottingham Forest",CFC:"Chelsea",LEE:"Leeds United",COV:"Coventry City",CRY:"Crystal Palace",TOT:"Tottenham",IPS:"Ipswich Town",NEW:"Newcastle",ARS:"Arsenal",HUL:"Hull City",BRI:"Brighton",LFC:"Liverpool",MUN:"Manchester United",BRE:"Brentford",EVE:"Everton"};
+const G=[
+["MCI","FUL","2026-11-21T12:30:00Z",70.1,17.2,12.7],
+["AVL","SUN","2026-11-21T15:00:00Z",53.6,24.8,21.6],
+["BOU","NFO","2026-11-21T15:00:00Z",49.7,26,24.3],
+["CFC","LEE","2026-11-21T15:00:00Z",50.5,25.4,24.1],
+["COV","CRY","2026-11-21T15:00:00Z",39.1,26.5,34.4],
+["TOT","IPS","2026-11-21T15:00:00Z",62.6,20.7,16.7],
+["NEW","ARS","2026-11-21T17:30:00Z",16.7,21.9,61.4],
+["HUL","BRI","2026-11-22T14:00:00Z",15.1,20.2,64.7],
+["LFC","MUN","2026-11-22T16:30:00Z",54.4,22.6,23],
+["BRE","EVE","2026-11-23T20:00:00Z",44.1,26.7,29.2]];
+const R=[["EVE",3,1,"COV","Nov 6"],["LEE",1,0,"TOT","Nov 7"],["ARS",1,0,"HUL","Nov 7"],["FUL",1,1,"NEW","Nov 7"],["NFO",3,1,"MCI","Nov 7"],["BRI",2,0,"BRE","Nov 8"],["CRY",1,3,"LFC","Nov 8"],["IPS",1,2,"BOU","Nov 8"],["SUN",1,0,"CFC","Nov 8"],["MUN",4,4,"AVL","Nov 8"]];
+const M=G.map(g=>({h:N[g[0]],a:N[g[1]],c:[g[0],g[1]],t:g[2],p:[g[3],g[4],g[5]]}));
+const $=s=>document.querySelector(s);
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let range="week";
+
+function tier(m){
+  if(m>=90)return["strong","Strong lean","Still not a guarantee."];
+  if(m>=70)return["caution","Caution","Below 90%, so stake carefully."];
+  return["no","Don’t play","Too uncertain."];
+}
+
+/* goals model: find expected goals that match the win chances */
+function pois(l,k){let p=Math.exp(-l);for(let i=1;i<=k;i++)p*=l/i;return p}
+function grid(h,a){
+  let H=0,D=0,A=0;const P=[];
+  for(let i=0;i<=8;i++){P[i]=[];for(let j=0;j<=8;j++){const p=pois(h,i)*pois(a,j);P[i][j]=p;if(i>j)H+=p;else if(i===j)D+=p;else A+=p}}
+  const s=H+D+A;
+  return{h:H/s*100,d:D/s*100,a:A/s*100,P:P,s:s};
+}
+function fit(p){
+  let b=[1.3,1.1],be=1e9;
+  for(let h=.2;h<=3.6;h+=.05)for(let a=.2;a<=3.6;a+=.05){
+    const g=grid(h,a),e=(g.h-p[0])**2+(g.d-p[1])**2+(g.a-p[2])**2;
+    if(e<be){be=e;b=[h,a]}
+  }
+  return b;
+}
+function detail(m){
+  const l=fit(m.p),g=grid(l[0],l[1]),P=g.P,s=g.s,sc=[];
+  let o15=0,o25=0,bt=0,c1=0,c2=0;
+  for(let i=0;i<=8;i++)for(let j=0;j<=8;j++){
+    const p=P[i][j]/s;sc.push([i+"–"+j,p*100]);
+    if(i+j>=2)o15+=p;if(i+j>=3)o25+=p;if(i>0&&j>0)bt+=p;if(j===0)c1+=p;if(i===0)c2+=p;
+  }
+  sc.sort((x,y)=>y[1]-x[1]);
+  const f=x=>Math.round(x*100)+"%";
+  const top=sc.slice(0,3).map(x=>x[0]+" ("+Math.round(x[1])+"%)").join(", ");
+  const kv=(k,v)=>'<div class="kv"><span>'+k+'</span><b>'+v+'</b></div>';
+  return kv("Most likely scores",top)+
+    kv("Expected goals",m.c[0]+" "+l[0].toFixed(1)+", "+m.c[1]+" "+l[1].toFixed(1))+
+    kv("Both teams score",f(bt))+kv("Over 1.5 goals",f(o15))+kv("Over 2.5 goals",f(o25))+
+    kv(m.h+" clean sheet",f(c1))+kv(m.a+" clean sheet",f(c2))+
+    kv("At least one team scores 0",f(1-bt))+kv("Exactly 0–0",f(P[0][0]/s))+
+    '<p class="small">Estimates from a goals model fitted to the win chances. Real scores vary a lot, so treat these as rough.</p>';
+}
+
+function card(m,i){
+  const mx=Math.max(m.p[0],m.p[1],m.p[2]);
+  const lean=mx===m.p[0]?m.h+" win":mx===m.p[2]?m.a+" win":"Draw";
+  const t=tier(mx);
+  const when=m.t?new Date(m.t).toLocaleString([],{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"Your match";
+  return '<div class="card"><button class="teams" data-i="'+i+'" aria-expanded="false">'+m.h+' v '+m.a+'</button>'+
+    '<div class="small">'+when+'</div>'+
+    '<div class="bar" role="img" aria-label="'+m.c[0]+' '+m.p[0]+'%, draw '+m.p[1]+'%, '+m.c[1]+' '+m.p[2]+'%"><i style="flex:'+m.p[0]+';background:var(--accent)"></i><i style="flex:'+m.p[1]+';background:var(--line)"></i><i style="flex:'+m.p[2]+';background:var(--away)"></i></div>'+
+    '<div class="legend"><span>'+m.c[0]+' '+m.p[0]+'%</span><span>Draw '+m.p[1]+'%</span><span>'+m.c[1]+' '+m.p[2]+'%</span></div>'+
+    '<div class="verdict"><span class="badge b-'+t[0]+'">'+t[1]+'</span>Top lean: '+lean+' ('+Math.round(mx*10)/10+'%). '+t[2]+'</div>'+
+    '<div class="det" id="d'+i+'" hidden></div></div>';
+}
+function renderList(){
+  const now=new Date();let html="";
+  M.forEach((m,i)=>{
+    if(m.t){
+      const t=new Date(m.t),d=t-now;
+      if(range==="today"&&t.toDateString()!==now.toDateString())return;
+      if(range==="week"&&!(d<7*864e5&&d>-1e7))return;
+    }
+    html+=card(m,i);
+  });
+  $("#list").innerHTML=html||'<div class="card">No games in this window. Try “All.”</div>';
+}
+function renderChips(){
+  $("#chips").innerHTML=[["today","Today"],["week","Next 7 days"],["all","All"]].map(c=>'<button data-r="'+c[0]+'" aria-pressed="'+(range===c[0])+'">'+c[1]+'</button>').join("");
+  document.querySelectorAll("#chips button").forEach(b=>b.onclick=()=>{range=b.dataset.r;renderChips();renderList()});
+}
+$("#list").onclick=e=>{
+  const b=e.target.closest(".teams");
+  if(!b)return;
+  const i=+b.dataset.i,d=$("#d"+i),open=d.hidden;
+  d.hidden=!open;b.setAttribute("aria-expanded",open);
+  if(open&&!d.innerHTML)d.innerHTML=detail(M[i]);
+};
+$("#addM").onclick=()=>{
+  const h=$("#mh").value.trim()||"Home",a=$("#ma").value.trim()||"Away";
+  const o=["#o1","#oX","#o2"].map(s=>parseFloat($(s).value.replace(",",".")));
+  if(o.some(x=>!(x>1))){$("#addErr").textContent="Enter all three odds as decimals above 1, like 1.85.";return}
+  $("#addErr").textContent="";
+  const inv=o.map(x=>1/x),s=inv[0]+inv[1]+inv[2];
+  M.unshift({h:esc(h),a:esc(a),c:[esc(h.slice(0,3).toUpperCase()),esc(a.slice(0,3).toUpperCase())],t:null,p:inv.map(x=>Math.round(x/s*1000)/10)});
+  range="all";renderChips();renderList();
+};
+$("#results").innerHTML=R.map(r=>'<div class="res"><span>'+N[r[0]]+' v '+N[r[3]]+'</span><span><b>'+r[1]+'–'+r[2]+'</b> <span class="small">'+r[4]+'</span></span></div>').join("");
+renderChips();renderList();
+
+/* tabs */
+function tab(n){
+  for(let i=0;i<3;i++){$("#p"+i).hidden=i!==n;$("#t"+i).setAttribute("aria-selected",i===n)}
+}
+for(let i=0;i<3;i++)$("#t"+i).onclick=()=>tab(i);
+
+/* slip check */
+$("#slipGo").onclick=()=>{
+  const out=$("#slipOut");
+  const legs=[];
+  $("#slipText").value.split("\n").map(s=>s.trim()).filter(Boolean).forEach(l=>{
+    const nums=(l.match(/\d+(?:[.,]\d+)?/g)||[]).map(x=>parseFloat(x.replace(",","."))).filter(x=>x>1);
+    if(nums.length)legs.push({t:l,o:nums[nums.length-1]});
+  });
+  if(!legs.length){out.textContent="Add at least one line that ends with its odds, like: Arsenal win 1.45";return}
+  let odds=1,chance=1,weak=legs[0];
+  legs.forEach(x=>{odds*=x.o;chance*=1/x.o;if(x.o>weak.o)weak=x});
+  const pc=chance*100,t=tier(pc);
+  const lines=legs.map((x,i)=>(i+1)+". "+x.t+"  (chance about "+Math.round(100/x.o)+"%)");
+  lines.push("","Combined odds: "+odds.toFixed(2),"Chance every game wins: "+(pc<1?pc.toFixed(2):pc.toFixed(1))+"%","Weakest game: "+weak.t);
+  const stake=parseFloat(($("#stake").value||"").replace(",","."));
+  if(stake>0)lines.push("Stake "+stake+" returns "+(stake*odds).toFixed(2)+" only if every game wins");
+  lines.push("","Verdict: "+t[1]+". "+t[2],"Odds include the bookmaker’s margin, so the real chances are a little lower. Slips with many games lose far more often than they win.");
+  out.textContent=lines.join("\n");
+};
+
+/* trading */
+$("#trGo").onclick=()=>{
+  const out=$("#trOut");
+  const rows=$("#trText").value.split("\n").map(l=>(l.match(/-?\d+(?:\.\d+)?/g)||[]).map(Number)).filter(r=>r.length>=4).map(r=>({o:r[0],h:r[1],l:r[2],c:r[3]}));
+  if(rows.length<5){out.textContent="Add at least 5 candles, one per line, as open, high, low, close. Oldest first.";return}
+  const n=rows.length,last=rows[n-1],prev=rows[n-2],first=rows[0];
+  const avg=rows.reduce((s,r)=>s+(r.h-r.l),0)/n;
+  const sup=Math.min(...rows.map(r=>r.l)),res=Math.max(...rows.map(r=>r.h));
+  const net=last.c-first.c;
+  const trend=Math.abs(net)<avg*.5?"Sideways":net>0?"Up":"Down";
+  const body=Math.abs(last.c-last.o),rng=(last.h-last.l)||1e-9;
+  const up=last.h-Math.max(last.o,last.c),lo=Math.min(last.o,last.c)-last.l;
+  let pat=last.c>=last.o?"Bullish candle":"Bearish candle",bias=0;
+  if(body<.1*rng)pat="Doji (indecision)";
+  else if(lo>2*body&&up<body){pat="Hammer (possible bounce)";bias=1}
+  else if(up>2*body&&lo<body){pat="Shooting star (possible drop)";bias=-1}
+  else if(prev.c<prev.o&&last.c>last.o&&last.o<=prev.c&&last.c>=prev.o){pat="Bullish engulfing";bias=1}
+  else if(prev.c>prev.o&&last.c<last.o&&last.o>=prev.c&&last.c<=prev.o){pat="Bearish engulfing";bias=-1}
+  let lean;
+  if(bias)lean="Slight lean "+(bias>0?"up":"down")+" (about 55%)";
+  else if(trend!=="Sideways")lean="Slight lean to keep going "+trend.toLowerCase()+" (about 52%)";
+  else lean="No lean (about 50/50)";
+  const pos=Math.round((last.c-sup)/((res-sup)||1)*100);
+  const f=x=>+x.toPrecision(6);
+  out.textContent=[
+    $("#asset").value+", "+n+" candles read","",
+    "Trend: "+trend,
+    "Support (lowest low): "+f(sup),
+    "Resistance (highest high): "+f(res),
+    "Last close sits "+pos+"% of the way up this range",
+    "Average candle size: "+f(avg),
+    "Last candle: "+pat,"",
+    "Rough lean: "+lean,
+    "Confidence: Low. This many candles is a very small sample.","",
+    "Verdict: Don’t trade on this alone. Use a stop loss and risk only money you can afford to lose."
+  ].join("\n");
+};
+
+/* screenshot reading */
+const DEF={gemini:"gemini-flash-latest",claude:"claude-haiku-5-5"};
+let saved={};
+try{saved=JSON.parse(localStorage.getItem("mmd")||"{}")}catch(e){}
+$("#prov").value=saved.prov||"gemini";
+$("#mdl").value=saved.mdl||DEF[$("#prov").value];
+$("#key").value=saved.key||"";
+$("#prov").onchange=()=>{$("#mdl").value=DEF[$("#prov").value]};
+$("#saveKey").onclick=()=>{
+  try{
+    localStorage.setItem("mmd",JSON.stringify({prov:$("#prov").value,mdl:$("#mdl").value.trim(),key:$("#key").value.trim()}));
+    $("#keyMsg").textContent="Saved on this device.";
+  }catch(e){$("#keyMsg").textContent="This browser blocked saving. The settings still work until you close the page."}
+};
+function b64(file){
+  return new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result.split(",")[1]);r.onerror=no;r.readAsDataURL(file)});
+}
+async function askAI(prompt,file){
+  const prov=$("#prov").value,mdl=$("#mdl").value.trim(),key=$("#key").value.trim();
+  if(!key)throw new Error("Add your API key under AI reader settings first.");
+  const data=await b64(file),mime=file.type||"image/png";
+  let res,j;
+  if(prov==="gemini"){
+    res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(mdl)+":generateContent",{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":key},body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:mime,data:data}}]}]})});
+    j=await res.json();
+    if(!res.ok)throw new Error((j.error&&j.error.message)||"Request failed ("+res.status+")");
+    return j.candidates[0].content.parts.map(x=>x.text||"").join("");
+  }
+  res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:mdl,max_tokens:1000,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:mime,data:data}},{type:"text",text:prompt}]}]})});
+  j=await res.json();
+  if(!res.ok)throw new Error((j.error&&j.error.message)||"Request failed ("+res.status+")");
+  return j.content.map(x=>x.text||"").join("");
+}
+const SLIP_P="This is a screenshot of a football bet slip. List each game on it, one per line, as: Home v Away, pick, decimal odds. Output only those lines, with no total odds and no commentary. If it is not a bet slip, say so in one line.";
+const chartP=()=>"You are a careful technical analyst. The image is a candlestick chart of "+$("#asset").value+". Reply in plain text with short lines and no markdown. Cover: 1) trend and structure, 2) the nearest support and resistance levels you can read, 3) what the last few candles show, 4) two possible next moves with rough likelihoods that add up to 100%, 5) the level that would invalidate your main view, 6) overall confidence (Low, Medium or High) and why. Do not promise outcomes, and end with: Not financial advice. If the image is not a chart, say so.";
+$("#aiSlipGo").onclick=async()=>{
+  const f=$("#slipShot").files[0],m=$("#shotMsg"),b=$("#aiSlipGo");
+  if(!f){m.textContent="Choose a screenshot first.";return}
+  b.disabled=true;m.textContent="Reading the slip…";
+  try{
+    $("#slipText").value=(await askAI(SLIP_P,f)).trim();
+    m.textContent="Check the lines, fix any mistakes, then tap Check my slip.";
+  }catch(e){m.textContent="Couldn’t read the screenshot. "+e.message}
+  b.disabled=false;
+};
+$("#ocrGo").onclick=async()=>{
+  const f=$("#slipShot").files[0],m=$("#shotMsg"),b=$("#ocrGo");
+  if(!f){m.textContent="Choose a screenshot first.";return}
+  b.disabled=true;m.textContent="Reading text… the first time needs internet and can take a minute.";
+  try{
+    if(!window.Tesseract)await new Promise((ok,no)=>{
+      const sc=document.createElement("script");
+      sc.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
+      sc.onload=ok;sc.onerror=()=>no(new Error("The reader didn’t load. Check your internet."));
+      document.head.appendChild(sc);
+    });
+    const r=await Tesseract.recognize(f,"eng");
+    $("#slipText").value=r.data.text.split("\n").map(x=>x.trim()).filter(x=>x).join("\n");
+    m.textContent="Check the lines, fix any mistakes, then tap Check my slip.";
+  }catch(e){m.textContent="Couldn’t read the screenshot. "+e.message}
+  b.disabled=false;
+};
+$("#aiChartGo").onclick=async()=>{
+  const f=$("#chartShot").files[0],out=$("#trOut"),b=$("#aiChartGo");
+  if(!f){out.textContent="Choose a chart screenshot first.";return}
+  b.disabled=true;out.textContent="Reading the chart…";
+  try{out.textContent=(await askAI(chartP(),f)).trim()}
+  catch(e){out.textContent="Couldn’t read the screenshot. "+e.message}
+  b.disabled=false;
+};
+</script>
+</body>
+</html>
